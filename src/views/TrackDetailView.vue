@@ -19,11 +19,15 @@ function saveSpeed() {
     <div class="split">
       <div class="segment-list">
         <button v-for="segment in store.segments" :key="segment.id" :class="{ active: segment.id === store.selectedSegmentId }" @click="store.selectedSegmentId = segment.id; speed = segment.speedLimit; temporary = segment.temporarySpeedLimit">
-          <span>{{ segment.id }} · V{{ segment.version }}</span><strong>{{ segment.line }}</strong><small>K{{ Math.floor(segment.startMileage / 1000) }}+{{ String(segment.startMileage % 1000).padStart(3, '0') }} - K{{ Math.floor(segment.endMileage / 1000) }}+{{ String(segment.endMileage % 1000).padStart(3, '0') }}</small>
+          <span>{{ segment.id }} · V{{ segment.version }}<template v-if="segment.reviewStatus === '待复核'"> · 待复核</template></span><strong>{{ segment.line }}</strong><small>K{{ Math.floor(segment.startMileage / 1000) }}+{{ String(segment.startMileage % 1000).padStart(3, '0') }} - K{{ Math.floor(segment.endMileage / 1000) }}+{{ String(segment.endMileage % 1000).padStart(3, '0') }}</small>
         </button>
       </div>
       <div v-if="store.selectedSegment" class="track-main">
-        <div class="section-head"><div><span>{{ store.selectedSegment.id }}</span><h2>{{ store.selectedSegment.line }}</h2><p>正式限速 {{ store.selectedSegment.speedLimit }} km/h<template v-if="store.selectedSegment.temporarySpeedLimit"> · 临时限速 {{ store.selectedSegment.temporarySpeedLimit }} km/h</template></p></div><v-chip color="warning">区段版本 V{{ store.selectedSegment.version }}</v-chip></div>
+        <div v-if="store.selectedSegment.reviewStatus === '待复核'" class="review-banner">
+          <strong>限速版本 V{{ store.selectedSegment.version }} 已失效，区段回到待复核</strong>
+          <span>{{ store.selectedSegment.invalidReason }}。已提示调度复核，复核前不得继续按旧限速显示行车。</span>
+        </div>
+        <div class="section-head"><div><span>{{ store.selectedSegment.id }}</span><h2>{{ store.selectedSegment.line }}</h2><p :class="{ invalidated: store.selectedSegment.reviewStatus === '待复核' }">正式限速 {{ store.selectedSegment.speedLimit }} km/h<template v-if="store.selectedSegment.temporarySpeedLimit"> · 临时限速 {{ store.selectedSegment.temporarySpeedLimit }} km/h</template><template v-if="store.selectedSegment.reviewStatus === '待复核'">（已失效，待复核）</template></p></div><div class="head-chips"><v-chip v-if="store.selectedSegment.reviewStatus === '待复核'" color="error">待复核</v-chip><v-chip color="warning">区段版本 V{{ store.selectedSegment.version }}</v-chip></div></div>
         <MileageCanvas :segment="store.selectedSegment" :defects="segmentDefects" />
         <div class="speed-panel">
           <div><strong>速度与限速联查</strong><p>一级缺陷未关闭时，临时限速必须低于正式限速；保存后区段版本递增。</p></div>
@@ -50,6 +54,10 @@ function saveSpeed() {
 .track-main { background: white; border: 1px solid #dae1e2; padding: 18px; }
 .section-head { display: flex; justify-content: space-between; margin-bottom: 14px; }
 .section-head span { color: #738180; font-size: 11px; }.section-head h2 { margin: 4px 0; font-size: 20px; }.section-head p { margin: 0; color: #60706f; }
+.section-head p.invalidated { color: #a63e38; text-decoration: line-through; }
+.head-chips { display: flex; gap: 8px; align-items: flex-start; }
+.review-banner { display: grid; gap: 4px; padding: 11px 14px; margin-bottom: 12px; background: #fdf0ee; border: 1px solid #e5b7b2; border-left: 3px solid #a63e38; font-size: 12px; }
+.review-banner strong { color: #a63e38; }.review-banner span { color: #6d4a46; }
 .speed-panel { display: grid; grid-template-columns: 1fr 130px 130px auto; gap: 10px; align-items: center; margin: 14px 0; padding: 12px; background: #f4f7f7; }
 .speed-panel p { margin: 4px 0 0; color: #71807f; font-size: 11px; }
 .validation-message { color: #a33a35; font-size: 12px; margin-bottom: 10px; }

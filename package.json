@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite --port 18466",
     "build": "vue-tsc --noEmit -p tsconfig.app.json && vite build",
+    "test:merge": "esbuild test/merge.test.mjs --bundle --platform=node --format=esm --loader:.mjs=ts --outfile=node_modules/.cache/merge.test.mjs && node node_modules/.cache/merge.test.mjs",
     "preview": "vite preview --port 18466"
   },
   "dependencies": {

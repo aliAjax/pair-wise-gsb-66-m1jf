@@ -30,6 +30,12 @@ export const seedDefects: Defect[] = [
     id: 'GD-260928-07', segmentId: 'SEG-K208', mileage: 209200, type: '三角坑', severity: '三级', measuredValue: 7.5, limit: 8.0, status: '已关闭', owner: '工务二工区', discoveredAt: '2026-09-28T03:00:00', dueDate: '2026-09-29', version: 5,
     actions: [{ method: '垫板调整', note: '调整连续三块垫板', operator: '陈伟', recordedAt: '2026-09-28T08:40:00' }],
     retests: [{ round: 1, passed: true, measuredValue: 6.8, limit: 8.0, note: '满足验收标准', tester: '魏强', testedAt: '2026-09-28T15:20:00' }]
+  },
+  {
+    // 旧台账导入记录：无版本号，首次导入时补齐为 V1，历史整治与复测保留
+    id: 'GD-260927-03', segmentId: 'SEG-K208', mileage: 209800, type: '方向', severity: '二级', measuredValue: 6.4, limit: 6.0, status: '整治中', owner: '工务二工区', discoveredAt: '2026-09-27T22:40:00', dueDate: '2026-09-30',
+    actions: [{ method: '捣固', note: '夜间天窗捣固作业', operator: '赵鹏', recordedAt: '2026-09-28T01:10:00' }],
+    retests: [{ round: 1, passed: false, measuredValue: 6.2, limit: 6.0, note: '接近限值，继续观察', tester: '魏强', testedAt: '2026-09-28T04:30:00' }]
   }
 ]
 

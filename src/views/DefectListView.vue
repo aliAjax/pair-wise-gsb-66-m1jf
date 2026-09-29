@@ -52,7 +52,7 @@ function assign() {
       <template #item.severity="{ item }"><v-chip size="small" :color="item.severity === '一级' ? 'error' : item.severity === '二级' ? 'warning' : 'default'">{{ item.severity }}</v-chip></template>
       <template #item.status="{ item }"><v-chip size="small" :color="item.status === '已关闭' ? 'success' : item.status === '复测不合格' ? 'error' : 'warning'">{{ item.status }}</v-chip></template>
       <template #item.mileage="{ item }">K{{ Math.floor(item.mileage / 1000) }}+{{ String(item.mileage % 1000).padStart(3, '0') }}</template>
-      <template #item.version="{ item }">V{{ item.version }}</template>
+      <template #item.version="{ item }">V{{ item.version ?? 1 }}</template>
       <template #item.actions="{ item }"><v-btn size="small" variant="text" @click="router.push(`/work-orders/${item.id}`)">处置</v-btn></template>
     </v-data-table>
   </section>
