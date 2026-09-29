@@ -23,7 +23,14 @@ function saveSpeed() {
         </button>
       </div>
       <div v-if="store.selectedSegment" class="track-main">
-        <div class="section-head"><div><span>{{ store.selectedSegment.id }}</span><h2>{{ store.selectedSegment.line }}</h2><p>正式限速 {{ store.selectedSegment.speedLimit }} km/h<template v-if="store.selectedSegment.temporarySpeedLimit"> · 临时限速 {{ store.selectedSegment.temporarySpeedLimit }} km/h</template></p></div><v-chip color="warning">区段版本 V{{ store.selectedSegment.version }}</v-chip></div>
+        <div class="section-head"><div><span>{{ store.selectedSegment.id }}</span><h2>{{ store.selectedSegment.line }}</h2>
+          <p v-if="store.selectedSegment.reviewStatus === '已复核'">正式限速 {{ store.selectedSegment.speedLimit }} km/h<template v-if="store.selectedSegment.temporarySpeedLimit"> · 临时限速 {{ store.selectedSegment.temporarySpeedLimit }} km/h</template></p>
+          <p v-else class="speed-invalid">原限速 {{ store.selectedSegment.speedLimit }} km/h<template v-if="store.selectedSegment.temporarySpeedLimit"> · 原临时限速 {{ store.selectedSegment.temporarySpeedLimit }} km/h</template> <v-chip size="x-small" color="error">待复核</v-chip></p>
+        </div><v-chip :color="store.selectedSegment.reviewStatus === '已复核' ? 'success' : 'error'">{{ store.selectedSegment.reviewStatus }} · V{{ store.selectedSegment.version }}</v-chip></div>
+        <div v-if="store.selectedSegment.reviewStatus === '待复核'" class="review-banner">
+          <strong>限速版本已失效，待调度复核</strong>
+          <span>{{ store.selectedSegment.reviewReason }}。原限速版本不得继续作为执行依据，请在下方重新计算并保存速度版本。</span>
+        </div>
         <MileageCanvas :segment="store.selectedSegment" :defects="segmentDefects" />
         <div class="speed-panel">
           <div><strong>速度与限速联查</strong><p>一级缺陷未关闭时，临时限速必须低于正式限速；保存后区段版本递增。</p></div>
@@ -50,6 +57,9 @@ function saveSpeed() {
 .track-main { background: white; border: 1px solid #dae1e2; padding: 18px; }
 .section-head { display: flex; justify-content: space-between; margin-bottom: 14px; }
 .section-head span { color: #738180; font-size: 11px; }.section-head h2 { margin: 4px 0; font-size: 20px; }.section-head p { margin: 0; color: #60706f; }
+.speed-invalid { color: #a63e38 !important; text-decoration: line-through; text-decoration-color: #a63e38; }
+.review-banner { display: flex; flex-direction: column; gap: 4px; padding: 12px 14px; margin-bottom: 12px; border-left: 4px solid #b84239; background: #fbeeed; }
+.review-banner strong { color: #a63e38; font-size: 13px; }.review-banner span { color: #7a5653; font-size: 12px; }
 .speed-panel { display: grid; grid-template-columns: 1fr 130px 130px auto; gap: 10px; align-items: center; margin: 14px 0; padding: 12px; background: #f4f7f7; }
 .speed-panel p { margin: 4px 0 0; color: #71807f; font-size: 11px; }
 .validation-message { color: #a33a35; font-size: 12px; margin-bottom: 10px; }

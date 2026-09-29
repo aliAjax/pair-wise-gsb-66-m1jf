@@ -10,17 +10,30 @@ const defect = computed(() => store.defects.find((item) => item.id === selectedI
 const action = reactive({ method: '捣固', note: '', operator: '李海' })
 const retest = reactive({ measuredValue: 0, tester: '王磊', note: '' })
 const message = ref('')
+const offlineMode = ref(false)
 function addAction() {
   if (!defect.value || !action.note) return
-  store.addAction(defect.value.id, { ...action, method: action.method as any, recordedAt: new Date().toISOString() })
+  const payload = { ...action, method: action.method as any, recordedAt: new Date().toISOString() }
+  if (offlineMode.value) {
+    store.createOfflineRecord('rectification', defect.value.id, payload)
+    message.value = '已写入离线队列，恢复网络后到「离线同步」页合并'
+  } else {
+    store.addAction(defect.value.id, payload)
+  }
   action.note = ''
 }
 function addRetest() {
   if (!defect.value) return
   const round = defect.value.retests.length + 1
   const passed = retest.measuredValue <= defect.value.limit
-  store.addRetest(defect.value.id, { round, passed, measuredValue: retest.measuredValue, limit: defect.value.limit, note: retest.note || (passed ? '复测合格' : '仍超过限值'), tester: retest.tester, testedAt: new Date().toISOString() })
-  message.value = passed ? '复测通过，缺陷已关闭' : '复测不合格，任务重新进入整治'
+  const payload = { round, passed, measuredValue: retest.measuredValue, limit: defect.value.limit, note: retest.note || (passed ? '复测合格' : '仍超过限值'), tester: retest.tester, testedAt: new Date().toISOString() }
+  if (offlineMode.value) {
+    store.createOfflineRecord('retest', defect.value.id, payload)
+    message.value = '复测值已写入离线队列，恢复网络后到「离线同步」页合并'
+  } else {
+    store.addRetest(defect.value.id, payload)
+    message.value = passed ? '复测通过，缺陷已关闭' : '复测不合格，任务重新进入整治'
+  }
 }
 function closeDefect() {
   if (!defect.value) return
@@ -39,7 +52,11 @@ function closeDefect() {
       </div>
       <div v-if="defect" class="work-main">
         <div class="section-head"><div><span>{{ defect.segmentId }} · K{{ Math.floor(defect.mileage / 1000) }}+{{ String(defect.mileage % 1000).padStart(3, '0') }}</span><h2>{{ defect.type }}缺陷整治</h2><p>{{ defect.measuredValue }} / 限值 {{ defect.limit }} · {{ defect.severity }} · {{ defect.status }}</p></div><v-chip :color="defect.status === '已关闭' ? 'success' : 'warning'">{{ defect.status }}</v-chip></div>
-        <div class="offline-band"><strong>离线补录模式</strong><span>现场无网络时先写入本地队列，恢复后保留原始记录时间和复测轮次。</span></div>
+        <div class="offline-band" :class="{ on: offlineMode }">
+          <strong>{{ offlineMode ? '离线模式 · 记录进本地队列' : '离线补录模式' }}</strong>
+          <span>{{ offlineMode ? '提交的整治记录与复测值不立即写台账，恢复网络后到「离线同步」页逐条合并，保留原始记录时间和复测轮次。' : '现场无网络时可开启离线模式，先写入本地队列，恢复后合并。' }}</span>
+          <v-switch v-model="offlineMode" color="warning" hide-details density="compact" label="离线模式" />
+        </div>
         <div class="action-form">
           <v-select v-model="action.method" :items="['打磨', '捣固', '更换', '垫板调整', '测量复核']" label="整治方式" density="compact" variant="outlined" hide-details />
           <v-text-field v-model="action.note" label="现场记录" density="compact" variant="outlined" hide-details />
@@ -71,7 +88,7 @@ function closeDefect() {
 .work-list span, .work-list small { color: #738180; font-size: 11px; }
 .work-main { background: white; border: 1px solid #dae1e2; padding: 18px; }
 .section-head { display: flex; justify-content: space-between; margin-bottom: 14px; }.section-head span { color: #71807e; font-size: 11px; }.section-head h2 { margin: 4px 0; }.section-head p { margin: 0; color: #667573; }
-.offline-band { display: flex; justify-content: space-between; padding: 11px; border-left: 3px solid #b08735; background: #fbf6e9; font-size: 12px; }.offline-band span { color: #736d5b; }
+.offline-band { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 11px; border-left: 3px solid #b08735; background: #fbf6e9; font-size: 12px; }.offline-band span { color: #736d5b; flex: 1; }.offline-band.on { background: #f3e7c8; border-left-color: #8c6a2f; }
 .action-form { display: grid; grid-template-columns: 170px 1fr 140px auto; gap: 10px; margin: 13px 0; }
 .validation-message { color: #a63e38; font-size: 12px; margin-bottom: 10px; }
 .two-column { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 18px 0; }.two-column h3 { font-size: 14px; }
